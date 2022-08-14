@@ -7,13 +7,6 @@ const Parse = require("parse");
 
 export default class Chat {
   constructor() {
-    // this.messages = localStorage.getItem("currentMessages") || [];
-    // try {
-    //   this.messages = JSON.parse(this.messages);
-    // } catch (error) {
-    //   console.log({ error });
-    // }
-
     this.html = `
     <div class="header-area">
     <h1>Your Name: </h1>
@@ -267,40 +260,35 @@ html {
     document.body.innerHTML = `<style>${this.css}</style>` + this.html;
     document.querySelector("#upload-img").src = UploadImgPng;
     document.querySelector("#send").src = sendImgPng;
+
+    // Form submission
     document.querySelector("form").addEventListener("submit", (e) => {
-      // e.stopPropagation();
-
       e.preventDefault();
-      // debugger;
-
       PubSub.publish("msgSent", Parse.User.current());
     });
+
+    // Uploading images event listener
     document
       .querySelector("#upload-img-button")
       .addEventListener("click", (e) => {
-        if (e.clientX === 0) {
-          return;
-        }
-        debugger;
-
+        if (e.clientX === 0) return;
         document.querySelector("#file-upload").click();
       });
 
+    // Send button event listener
     document.querySelector("#send-button").addEventListener("click", () => {
       PubSub.publish("msgSent", Parse.User.current());
-      // console.log(Parse.User.current());
     });
+
+    // Change username
     document.querySelector("h1").innerText += ` ${username}`;
-    document.body.querySelector("#text").addEventListener("focusout", () => {
-      // document.style.height = "-webkit-fill-available";
-      // document.body.style.minHeight = "-webkit-fill-available";
-      document.body.style.minHeight = "calc(100vh - 130px)";
 
-      // document.body.style.maxHeight = "100vh";
+    // Reset height of body after keyboard is no longer taking screen space
+    document.body.querySelector("#text").addEventListener("focusout", () => {
+      document.body.style.minHeight = "calc(100vh - 130px)";
     });
 
-    this.uploadFile();
-
+    // Logout button event listener
     document.body
       .querySelector("#logout-button")
       .addEventListener("click", () => {
@@ -308,25 +296,16 @@ html {
         PubSub.publish("logout-requested");
       });
 
-    // PubSub.subscribe("msgSaved", (pubsubMsg, msg) => {
-    //   const msgHTML = this.getMsgHTML(
-    //     msg.get("body"),
-    //     msg.get("username"),
-    //     moment(msg.createdAt).format("LT")
-    //   );
+    // Initiate uploadImages event listeners
+    this.uploadFile();
 
-    //   // debugger;
-    //   // console.log(msgHTML);
-    //   document.body
-    //     .querySelector(".chat-area")
-    //     .append(this.createElementFromHTML(msgHTML));
-    //   document.querySelector("#text").value = "";
-    // });
+    // Initial get messages call
+    this.updateMessage();
 
-    // setInterval(() => {
-    //   document.querySelector("#clock").textContent = moment().format("LT");
-    // }, 1000);
+    // test msg order
+    this.testMsgOrder();
 
+    // Setup new msg listener
     var client = new Parse.LiveQueryClient({
       applicationId: "z6wry3r4l7uk3P0tWQsOtMz3FB4ifkOqHvkHEbWv",
       serverURL: "wss://" + "elbaselmessage.b4a.io", // Example: 'wss://livequerytutorial.back4app.io'
@@ -334,117 +313,69 @@ html {
     });
     client.open();
 
-    (async () => {
-      const query = new Parse.Query("Message").ascending("createdAt");
-      let results = await query.find();
-      results = results.slice(-50);
-
-      // localStorage.setItem("cachedMsgs", JSON.stringify(results));
-      // results = results.slice(-5);
-
-      try {
-        // debugger;
-        // document.body.querySelector("#chat-area").innerHTML = "";
-        for (const message of results) {
-          // Access the Parse Object attributes using the .GET method
-          const body = message.get("body");
-          const username = message.get("username");
-          const createdAt = moment(message.createdAt).format("LT");
-          // console.log(myCustomKey1Name);
-          const imgUrl = message.get("img");
-          let msgClass = "";
-          // debugger;
-          if (!(username == Parse.User.current().get("username"))) {
-            msgClass = "other";
-          }
-          this.addMsg({ body, username, createdAt, msgClass, imgUrl });
-
-          // console.log(message);
-        }
-        // document.body.querySelector("#chat-area").scrollTop =
-        // document.querySelector("#chat-area").scrollHeight + 999999;
-        // document.body.querySelector("#chat-area").scrollTop =
-        // document.querySelector("#chat-area").scrollHeight;
-        document.querySelector("#chat-area").lastChild.scrollIntoView();
-        // document.querySelector("#chat-area").scroll(0, 99);
-      } catch (error) {
-        console.error("Error while fetching messages", error);
-      }
-    })();
-
-    // const Message = Parse.Object.extend("Message");
     var query = new Parse.Query("Message").ascending("createdAt");
     let subscription = client.subscribe(query);
 
     subscription.on("create", (msg) => {
-      // console.log(msg);
-      console.log("On create event");
-      // debugger;
-
-      (async () => {
-        const query = new Parse.Query("Message").ascending("createdAt");
-
-        // You can also query by using a parameter of an object
-        // query.equalTo('objectId', 'xKue915KBG');
-
-        // this.messages = JSON.parse(localStorage.getItem("currentMessages"));
-        // console.log({ msgs: this.messages });
-
-        // var msgs = this.messages;
-        // let cachedMsgs = JSON.parse(localStorage.getItem("cachedMsgs"));
-        let results = await query.find();
-        results = results.slice(-50);
-        // debugger;
-
-        // results = results.filter((msg) => {
-        //   for (const cachedMsg of cachedMsgs) {
-        //     if (cachedMsg.ObjectId == msg.id) {
-        //       return false;
-        //     }
-        //   }
-        //   return true;
-        // });
-        // debugger;
-        // localStorage.setItem("cachedMsgs", JSON.stringify(results));
-        // console.log({ results });
-        // debugger;
-
-        // this.messages += results;
-        // localStorage.setItem("currentMessages", JSON.stringify(this.messages));
-        // results = results.slice(-5);
-
-        try {
-          document.body.querySelector("#chat-area").innerHTML = "";
-          for (const message of results) {
-            // Access the Parse Object attributes using the .GET method
-            const body = message.get("body");
-            const username = message.get("username");
-            const createdAt = moment(message.createdAt).format("LT");
-            // console.log(myCustomKey1Name);
-            const imgUrl = message.get("img");
-            let msgClass = "";
-            // debugger;
-            if (!(username == Parse.User.current().get("username"))) {
-              msgClass = "other";
-            }
-            this.addMsg({ body, username, createdAt, msgClass, imgUrl });
-
-            // console.log(message);
-          }
-          document.body.querySelector("#chat-area").scrollTop =
-            document.querySelector("#chat-area").scrollHeight;
-        } catch (error) {
-          console.error("Error while fetching messages", error);
-        }
-      })();
+      this.updateMessage();
     });
-    // let query2 = new Parse.Query("Message").ascending("createdAt");
+  }
 
-    // this.messages = await query2.find();
+  testMsgLimit({ times, duration = 300 }) {
+    const textField = document.querySelector("#text");
+    const sendKey = document.querySelector("#send-button");
+    let counter = 0;
+    const interval = setInterval(() => {
+      textField.value = counter;
+      sendKey.click();
+      counter++;
+      if (times) {
+        if (counter >= times) clearInterval(interval);
+      }
+    }, duration);
+  }
+
+  async testMsgOrder() {
+    const query = new Parse.Query("Message").descending("createdAt");
+    let results = await query.find();
+    results.reverse();
+    for (const msg of results) {
+      console.log({
+        body: msg.get("body"),
+        username: msg.get("username"),
+        object: msg,
+      });
+    }
+  }
+
+  // Update message in the chat area
+  async updateMessage() {
+    const query = new Parse.Query("Message").descending("createdAt");
+    let results = await query.find();
+
+    results.reverse();
+    try {
+      document.body.querySelector("#chat-area").innerHTML = "";
+      for (const message of results) {
+        const body = message.get("body");
+        const username = message.get("username");
+        const createdAt = moment(message.createdAt).format("LT");
+        const imgUrl = message.get("img");
+        let msgClass = "";
+        if (!(username == Parse.User.current().get("username"))) {
+          msgClass = "other";
+        }
+        this.addMsg({ body, username, createdAt, msgClass, imgUrl });
+      }
+
+      document.querySelector("#chat-area").scrollTop =
+        document.querySelector("#chat-area").scrollHeight;
+    } catch (error) {
+      console.error("Error while fetching messages", error);
+    }
   }
 
   addMsg({ body, username, createdAt, msgClass, imgUrl }) {
-    // debugger;
     document.body
       .querySelector("#chat-area")
       .append(
@@ -452,49 +383,16 @@ html {
           this.getMsgHTML(body, username, createdAt, msgClass, imgUrl)
         )
       );
-    // document.body.querySelector("#chat-area").scrollTop =
-    // document.querySelector("#chat-area").scrollHeight;
   }
 
   static async saveImgMessage(fileObject) {
     var messageClass = Parse.Object.extend("Message");
     var message = new messageClass();
     message.set("img", fileObject.url());
-    // debugger;
     message.set("username", Parse.User.current().get("username"));
     message.set("body", "#");
-    // console.log(message);
-    // debugger;
+
     message.save();
-    // const savedMessage = await message.save("");
-    // console.log(savedMessage);
-    // console.log({ username: Parse.User.current().get("username") });
-    // message.save("");
-    // { body: "", username: Parse.User.current().get("username") }
-    // {
-    //   success: function (savedMessage) {
-    //     // Execute any logic that should take place after the object is saved.
-    //     const photo = savedMessage.get("img");
-    //     this.addMsg({
-    //       body: "",
-    //       username: savedMessage.get("username"),
-    //       createdAt: savedMessage.createdAt,
-    //       msgClass:
-    //         savedMessage.get('username"') ==
-    //         Parse.User.current().get("username")
-    //           ? ""
-    //           : "other",
-    //       imgUrl: photo.url(),
-    //     });
-    //   },
-    //   error: function (gameScore, error) {
-    //     // Execute any logic that should take place if the save fails.
-    //     // error is a Parse.Error with an error code and description.
-    //     alert(
-    //       "Failed to create new object, with error code: " + error.description
-    //     );
-    //   },
-    // }
   }
 
   uploadFile() {
@@ -524,8 +422,6 @@ html {
   createElementFromHTML(htmlString) {
     var div = document.createElement("div");
     div.innerHTML = htmlString.trim();
-
-    // Change this to div.childNodes to support multiple top-level nodes.
     return div.firstChild;
   }
 
@@ -538,6 +434,10 @@ html {
     profileImg = ""
   ) {
     const profilePictureURl = `https://source.boringavatars.com/beam/120/${userName}`;
+
+    if (profileImg) {
+      profilePictureURl = profileImg;
+    }
 
     if (userName == Parse.User.current().get("username")) {
       userName = "You";
