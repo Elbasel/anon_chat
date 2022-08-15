@@ -303,7 +303,10 @@ html {
     this.updateMessage();
 
     // test msg order
-    this.testMsgOrder();
+    // this.testMsgOrder();
+
+    // test msg limit
+    // this.testMsgLimit({ times: 10, duration: 2000 });
 
     // Setup new msg listener
     var client = new Parse.LiveQueryClient({
@@ -322,13 +325,15 @@ html {
   }
 
   testMsgLimit({ times, duration = 300 }) {
+    console.log("testing msg limit");
     const textField = document.querySelector("#text");
     const sendKey = document.querySelector("#send-button");
     let counter = 0;
     const interval = setInterval(() => {
-      textField.value = counter;
+      textField.value = "testing msg limit: " + counter;
       sendKey.click();
       counter++;
+      console.log("messages sent");
       if (times) {
         if (counter >= times) clearInterval(interval);
       }
@@ -405,7 +410,6 @@ html {
         name = name.trim().replace(" ", "");
         name = name.replace("(", "");
         name = name.replace(")", "");
-        console.log(name);
         var parseFile = new Parse.File(name, file);
 
         parseFile.save().then(

@@ -60,13 +60,11 @@ function initSite() {
   PubSub.subscribe("msgSent", async (pubsubMsg, user) => {
     const username = user.get("username");
     let body = document.querySelector("#text").value;
-    console.log(body);
     if (!body) body = "#";
     const msgClass = Parse.Object.extend("Message");
     // debugger;
     const msg = new msgClass();
     const savedMsg = await msg.save({ body: body, username: username });
-    console.log({ savedMsg });
     PubSub.publish("msgSaved", savedMsg);
     document.querySelector("#text").value = "";
   });
