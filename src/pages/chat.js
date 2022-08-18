@@ -75,7 +75,7 @@ export default class Chat {
     max-height: 70vh;
     display: flex;
     flex-direction: column;
-    gap: 32px;
+    gap: 72px;
     padding: 32px;
     overflow-y: scroll;
     overflow-x: hidden;
@@ -105,7 +105,9 @@ html {
       font-size: 48px;
       display: flex;
       justify-content: flex-end;
+      align-items: center;
       // max-width: 50%;
+      gap: 32px;
 
   }
   
@@ -115,16 +117,45 @@ html {
   }
   
   .msg-wrapper {
-      background-color: red;
+      // background-color: red;
+      background-color: rgb(255 0 0 / 17%);
+
       border-radius: 32px;
       padding: 32px;
       display: flex;
       flex-direction: column;
       gap: 16px;
-      max-width: 70%;
+      max-width: fit-content;
+      flex: 1;
   
   }
   
+  .p-msg {
+    font-size: 3rem;
+    // min-width: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 180px;
+    margin-bottom: 62px;
+    padding: 62px;
+    // max-height: fit-content;
+    font-size: 3rem;
+    border-radius: 24px;
+
+  }
+
+  .other > .p-msg {
+    background-color: blue;
+    
+  }
+
+
+  .own-msg > .p-msg {
+    background-color: red;
+
+  }
+
   .other > .msg-wrapper {
       background-color: blue;
   }
@@ -202,6 +233,19 @@ html {
       max-height: 300px;
   }
   
+  .img-username-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+
+  .own-msg {
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+  }
   
   input {
       height:100px;
@@ -240,7 +284,12 @@ html {
   // width: auto;
   // height: auto;
   border-radius: 18px;
-  max-width: 100%;
+  // max-width: 100%;
+}
+
+.profile-img {
+  max-width: 200px;
+  border-radius: 18px;
 }
 
 .img-msg-wrapper {
@@ -366,7 +415,7 @@ html {
         const username = message.get("username");
         const createdAt = moment(message.createdAt).format("LT");
         const imgUrl = message.get("img");
-        let msgClass = "";
+        let msgClass = "own-msg";
         if (!(username == Parse.User.current().get("username"))) {
           msgClass = "other";
         }
@@ -437,10 +486,15 @@ html {
     imgUrl = null,
     profileImg = ""
   ) {
-    const profilePictureURl = `https://source.boringavatars.com/beam/120/${userName}`;
+    let profilePictureURl = `https://source.boringavatars.com/beam/120/${userName}`;
 
     if (profileImg) {
       profilePictureURl = profileImg;
+    }
+
+    if (userName === "zoro") {
+      profilePictureURl =
+        "https://shogi-pineapple.com/wp-content/uploads/2022/04/1649724084_One-Piece-Fanart-Imagines-Zoro-Within-the-World-of-Kimetsu.jpg";
     }
 
     if (userName == Parse.User.current().get("username")) {
@@ -452,7 +506,7 @@ html {
         <div class="msg ${msgClass}">
         <div class="msg-wrapper img-msg-wrapper">
           <img class="image-msg" src=${imgUrl}>
-          <p class="user">${userName} at ${sentAt}</p>
+          <p class="user">${userName.slice(0, 5)} at ${sentAt}</p>
         </div>
       </div>
         `;
@@ -460,18 +514,11 @@ html {
 
     return `
     <div class="msg ${msgClass}">
-
-      <div class="msg-wrapper">
-
-        <div class="img-text-wrapper">
-          <img class="profile-img" src=${profilePictureURl}>
-          <p class="p-msg">${msgText}</p>
-        </div>
-
-        <p class="user">${userName} at ${sentAt}</p>
-
+      <div class="img-username-wrapper">
+          <img class="profile-img" src=${profilePictureURl} alt="profile picture">
+          <p class="user">${userName.slice(0, 5)}</p>
       </div>
-
+      <p class="p-msg">${msgText}</p>
     </div>
   `;
   }
